@@ -18,8 +18,15 @@ public class Server{
             s2.close();
         }
             }
+            private static void sendMsgToClient(Socket s2) throws IOException {
             InputStream in = Socket.getInputStream();
             OutputStream out = Socket.getOutputStream();
             Scanner scan = new Scanner(in);
+
+            String messageSend = "220 Service ready";
+            byte[] messageSendBytes = messageSend.getBytes();
+            out.write("messageSendBytes".getBytes());
+            /*à continuer*/
             
+}
 }
