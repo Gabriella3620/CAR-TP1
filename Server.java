@@ -22,15 +22,21 @@ public class Server {
 
             // Recevoir le nom d'utilisateur
             String userNameInput = scan.nextLine();
+                System.out.println(userNameInput);
 
-            if (userNameInput.equals("UserName" + user)) {
+            if (userNameInput.equals("USER " + user)) {
                 System.out.println("User name ok");
                 String userValidMsg = "331 User name valid, enter password\r\n";
                 out.write(userValidMsg.getBytes());
 
                 // Recevoir le mot de passe
                 String passwordInput = scan.nextLine();
-                if (passwordInput.equals("Password " + password)) {
+
+                //AJOUT
+                    System.out.println(passwordInput);
+
+
+                if (passwordInput.equals("PASS " + password)) {
                     System.out.println("User logged in");
                     String userLoggedInMsg = "230 User logged in\r\n";
                     out.write(userLoggedInMsg.getBytes());
@@ -61,3 +67,4 @@ public class Server {
         }
     }
 }
+
