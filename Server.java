@@ -1,68 +1,62 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-public class Server{
 
-        public static void main(String[] args) throws IOException  {
-            ServerSocket serv = new ServerSocket(2121);
-            Socket s2 = serv.accept();
+public class Server {
 
-            try{ 
-                while (true){ 
-                
-                    InputStream in = s2.getInputStream();
-                    /* pour afficher le msg */ 
-                    OutputStream out = s2.getOutputStream();
-                    
-                    String messageSend = "220 Service ready\r\n";
-                    Scanner scan = new Scanner(in);
-                    String str = scan.nextLine();
+    public static void main(String[] args) throws IOException {
+        ServerSocket serv = new ServerSocket(2121);
+        Socket s2 = serv.accept();
 
-                    out.write(str.getBytes());
-                    system.out.println(str);
-                    String user = "Gabriella";
-                    String password = "Miage";
+        try {
+            InputStream in = s2.getInputStream();
+            OutputStream out = s2.getOutputStream();
+            Scanner scan = new Scanner(in);
 
-                    while (true){
-                        if(str.equals("user Name" + user)) {
-                            system.out.println("User name ok");
-                            String infoUser = "220 User valid \r\n";
-                            out.write(infoUser.getBytes());                          
+            String user = "Gabriella";
+            String password = "Miage";
+
+            // Envoyer le message de bienvenue
+            String welcomeMessage = "220 Service ready\r\n";
+            out.write(welcomeMessage.getBytes());
+
+            // Recevoir le nom d'utilisateur
+            String userNameInput = scan.nextLine();
+            if (userNameInput.equals("UserName " + user)) {
+                System.out.println("User name ok");
+                String userValidMsg = "331 User name valid, enter password\r\n";
+                out.write(userValidMsg.getBytes());
+
+                // Recevoir le mot de passe
+                String passwordInput = scan.nextLine();
+                if (passwordInput.equals("Password " + password)) {
+                    System.out.println("User logged in");
+                    String userLoggedInMsg = "230 User logged in\r\n";
+                    out.write(userLoggedInMsg.getBytes());
+
+                    // Traitement des commandes après la connexion
+                    /* while (true) {
+                        String command = scan.nextLine();
+                        if (command.equals("Quit")) {
+                            String quitMsg = "221 User logged out\r\n";
+                            out.write(quitMsg.getBytes());
+                            break;
                         }
-                    String str2 = scan.nextLine();
-                    if(str2.equals ("Password" + password)){
-                        String userLogged = "220 User logged in \r\n";
-                       
-                        out.write(userLogged.getBytes());
-                        while (true){
-                            String str3 = scan.nextLine();
-                            if(str3.equals ("Quit")){
-                                String quit = "220 User logged out \r\n";
-                       
-                                out.write(userLogged.getBytes());
-                            
-                            }
+                        // Ajouter d'autres commandes si nécessaire
+                    } */
 
-                    }
-
-                    }
-
-
-        
+                } else {
+                    System.out.println("Invalid password");
+                    String invalidPasswordMsg = "430 Invalid password\r\n";
+                    out.write(invalidPasswordMsg.getBytes());
+                }
+            } else {
+                System.out.println("Invalid user name");
+                String invalidUsernameMsg = "430 Invalid user name\r\n";
+                out.write(invalidUsernameMsg.getBytes());
             }
-            }
-            }
-            finally {
+        } finally {
             s2.close();
         }
-            
-
-        
-            
-}
-}
-
-
-        
-            
+    }
 }
