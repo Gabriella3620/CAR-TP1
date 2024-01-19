@@ -22,7 +22,8 @@ public class Server {
 
             // Recevoir le nom d'utilisateur
             String userNameInput = scan.nextLine();
-            if (userNameInput.equals("UserName " + user)) {
+
+            if (userNameInput.equals("UserName" + user)) {
                 System.out.println("User name ok");
                 String userValidMsg = "331 User name valid, enter password\r\n";
                 out.write(userValidMsg.getBytes());
@@ -35,15 +36,15 @@ public class Server {
                     out.write(userLoggedInMsg.getBytes());
 
                     // Traitement des commandes après la connexion
-                    /* while (true) {
+                     while (true) {
                         String command = scan.nextLine();
                         if (command.equals("Quit")) {
                             String quitMsg = "221 User logged out\r\n";
                             out.write(quitMsg.getBytes());
                             break;
                         }
-                        // Ajouter d'autres commandes si nécessaire
-                    } */
+                        
+                    } 
 
                 } else {
                     System.out.println("Invalid password");
