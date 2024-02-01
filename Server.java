@@ -4,67 +4,89 @@ import java.util.*;
 
 public class Server {
 
-    public static void main(String[] args) throws IOException {
-        ServerSocket serv = new ServerSocket(2121);
-        Socket s2 = serv.accept();
-
+    public static void main(String[] args) {
         try {
-            InputStream in = s2.getInputStream();
-            OutputStream out = s2.getOutputStream();
-            Scanner scan = new Scanner(in);
 
-            String user = "Gabriella";
-            String password = "Miage";
+            ServerSocket serv = new ServerSocket(2121);
 
-            // Envoyer le message de bienvenue
-            String welcomeMessage = "220 Service ready\r\n";
-            out.write(welcomeMessage.getBytes());
+            while (true) {
+                Socket s2 = serv.accept();
+                ClientFTP clientFTP = new ClientFTP(s2);
+                clientFTP.start();
+            }
 
-            // Recevoir le nom d'utilisateur
-            String userNameInput = scan.nextLine();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static class ClientFTP extends Thread {
+
+        public ClientFTP(Socket s2) {
+            try (
+                    InputStream in = s2.getInputStream();
+                    OutputStream out = s2.getOutputStream();
+                    Scanner scan = new Scanner(in);) {
+
+                // Envoyer le message de bienvenue
+                String welcomeMessage = "220 Service ready\r\n";
+                out.write(welcomeMessage.getBytes());
+
+                // Recevoir le nom d'utilisateur
+                String userNameInput = scan.nextLine();
                 System.out.println(userNameInput);
-
-            if (userNameInput.equals("USER " + user)) {
-                System.out.println("User name ok");
                 String userValidMsg = "331 User name valid, enter password\r\n";
                 out.write(userValidMsg.getBytes());
-
-                // Recevoir le mot de passe
                 String passwordInput = scan.nextLine();
+                System.out.println(passwordInput);
 
-                //AJOUT
-                    System.out.println(passwordInput);
-
-
-                if (passwordInput.equals("PASS " + password)) {
-                    System.out.println("User logged in");
-                    String userLoggedInMsg = "230 User logged in\r\n";
-                    out.write(userLoggedInMsg.getBytes());
-
-                    // Traitement des commandes après la connexion
-                     while (true) {
-                        String command = scan.nextLine();
-                        if (command.equals("Quit")) {
-                            String quitMsg = "221 User logged out\r\n";
-                            out.write(quitMsg.getBytes());
-                            break;
-                        }
-                        
-                    } 
-
+                if (userAuth(userNameInput, passwordInput)) {
+                    out.write("230 User logged in\r\n".getBytes());
                 } else {
-                    System.out.println("Invalid password");
-                    String invalidPasswordMsg = "430 Invalid password\r\n";
-                    out.write(invalidPasswordMsg.getBytes());
+                    out.write("530 Login incorrect\r\n".getBytes());
+                    return;
                 }
-            } else {
-                System.out.println("Invalid user name");
-                String invalidUsernameMsg = "430 Invalid user name\r\n";
-                out.write(invalidUsernameMsg.getBytes());
+
+                String commandeClt;
+                do {
+                    commandeClt = scan.nextLine();
+
+                    System.out.println(commandeClt);
+
+                    switch (commandeClt) {
+                        case "QUIT":
+                            out.write(("221 " + userNameInput + " Disconnected.\r\n").getBytes());
+                            break;
+
+                        default:
+                            out.write("500 Command not valid\r\n".getBytes());
+                    }
+                } while (!commandeClt.equalsIgnoreCase("QUIT"));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
             }
-        } finally {
-            s2.close();
         }
+
+        private static boolean userAuth(String username, String password) {
+            return username.equals("USER Gabriella") && password.equals("PASS Miage");
+        }
+
     }
+
 }
 
+/*
+ * Affichage de 1)
+ * 
+ * Connected to localhost.
+ * 220 Service ready
+ * Name (localhost:gabriella): Gabriella
+ * 331 User name valid, enter password
+ * Password:
+ * 230 User logged in
+ * ftp> quit
+ * 221 USER Gabriella Disconnected.
+ */
