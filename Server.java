@@ -22,6 +22,7 @@ public class Server {
     }
 
     private static class ClientFTP extends Thread {
+        private ServerSocket fichierServerSocket;
 
         public ClientFTP(Socket s2) {
             try (
@@ -58,6 +59,10 @@ public class Server {
                         case "QUIT":
                             out.write(("221 " + userNameInput + " Disconnected.\r\n").getBytes());
                             break;
+                        /* pour tout type de fichiers, PASV pour les fichiers txt */
+                        case "EPSV":
+                            epsv(out);
+                            break;
 
                         default:
                             out.write("500 Command not valid\r\n".getBytes());
@@ -74,14 +79,22 @@ public class Server {
             return username.equals("USER Gabriella") && password.equals("PASS Miage");
         }
 
+        private void epsv(OutputStream out) {
+            try {
+
+                fichierServerSocket = new ServerSocket(2040);
+
+            } catch (Exception e) {
+                System.err.println("Error : " + e);
+            }
+        }
+
     }
 
 }
 
 /*
- * Affichage de 1)
- * 
- * Connected to localhost.
+ * 1) Connected to localhost.
  * 220 Service ready
  * Name (localhost:gabriella): Gabriella
  * 331 User name valid, enter password
