@@ -57,15 +57,15 @@ public class Server {
 
                     System.out.println(commandeClt);
 
-                    /* Contraiment à par exemple quit, get prend un argument. 
+                    /* Contrairement à par exemple quit, get prend un argument. 
                     Pour RETR, il me faut donc séparer la commande de l'argument */
-                    String[] separetedCommand = commandeClt.split("\\s+", 2); 
+                    String[] separetedCommand = commandeClt.split("\\s+", 2); // je sépare la commande en 2
                     String command = separetedCommand[0].toUpperCase();
                     String fichierEnvoye = separetedCommand.length > 1 ? separetedCommand[1] : "";
 
                     switch (command) {
                         case "QUIT":
-                            out.write(("221 " + userNameInput + " Well disconnected. Thank you.\r\n").getBytes());
+                            out.write(("221 " + userNameInput + " Disconnected.\r\n").getBytes());
                             break;
                         /* EPSV pour tout type de fichiers, PASV pour les fichiers txt */
                         case "EPSV":
@@ -74,6 +74,10 @@ public class Server {
                         case "RETR":
                             retr(out, fichierEnvoye);
                             break;
+                        case "LIST":
+                            list(out);
+                            break;
+                       
 
                         default:
                             out.write("500 Command not valid\r\n".getBytes());
@@ -131,11 +135,39 @@ public class Server {
             }
         }
 
+        private void list(OutputStream out) throws IOException {
+
+            try (Socket dataSocket = fichierServerSocket.accept(); // je crée une nouvelle connexion sur le nouveau port
+                                                                   // 2222
+
+                    OutputStream dataOut = dataSocket.getOutputStream()) {
+
+                File repertoire = new File("CAR-TP1/"); // je crée une variable repertoire qui prend en param le dossier
+                                                        // CAR-TP1
+                File[] files = repertoire.listFiles(); // je cree un tableau qui va contenir des fichiers ou des
+                                                       // repertoires
+
+                if (files == null) {
+                    out.write("550 Directory not found\r\n".getBytes());
+                    return;
+                } else { // si CAR-TP1 existe
+                    out.write("150 Directory listing\r\n".getBytes());
+
+                    for (File file : files) {
+                        // j'affiche le dossier ou le fichier qui est dans le repertoire
+                        dataOut.write((file.getName() + "\r\n").getBytes());
+
+                    }
+                    out.write("226 Directory send OK.\r\n".getBytes());
+                }
+
+            }
+        }
 
 
     }
 }
-/* RESULTATS */
+/* RESULTATS DES TESTS */
 /*
  * 1)Authentification:
  * 
@@ -147,7 +179,7 @@ public class Server {
  * Password:
  * 230 User logged in
  * ftp> quit
- * 221 USER Gabriella Well disconnected. Thank you.
+ * 221 USER Gabriella well disconnected. Thank you
  */
 
 /*
@@ -173,4 +205,19 @@ public class Server {
  * ftp>
  * 
  */
+
+/*
+ * 220 Service ready
+ * Name (localhost:gabriella): Gabriella
+ * 331 User name valid, enter password
+ * Password:
+ * 230 User logged in
+ * ftp> dir
+ * 229 Entering Extended Passive Mode (|||2222|||)
+ * 150 Directory listing
+ * src
+ * README.md
+ * 
+ * 226 Directory send OK.
+ * 
 
