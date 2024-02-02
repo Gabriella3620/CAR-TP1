@@ -43,7 +43,7 @@ public class Server {
                 String passwordInput = scan.nextLine();
                 System.out.println(passwordInput);
 
-                //userAuth verifie si on a bien les bons identifiant et mdp 
+                // userAuth verifie si on a bien les bons identifiant et mdp
                 if (userAuth(userNameInput, passwordInput)) {
                     out.write("230 User logged in\r\n".getBytes());
                 } else {
@@ -57,8 +57,10 @@ public class Server {
 
                     System.out.println(commandeClt);
 
-                    /* Contrairement à par exemple quit, get prend un argument. 
-                    Pour RETR, il me faut donc séparer la commande de l'argument */
+                    /*
+                     * Contrairement à par exemple quit, get prend un argument.
+                     * Pour RETR, il me faut donc séparer la commande de l'argument
+                     */
                     String[] separetedCommand = commandeClt.split("\\s+", 2); // je sépare la commande en 2
                     String command = separetedCommand[0].toUpperCase();
                     String fichierEnvoye = separetedCommand.length > 1 ? separetedCommand[1] : "";
@@ -77,7 +79,9 @@ public class Server {
                         case "LIST":
                             list(out);
                             break;
-                       
+                        case "CWD": // cd monDossier
+                            cwd(out, fichierEnvoye);
+                            break;
 
                         default:
                             out.write("500 Command not valid\r\n".getBytes());
@@ -142,7 +146,7 @@ public class Server {
 
                     OutputStream dataOut = dataSocket.getOutputStream()) {
 
-                File repertoire = new File("CAR-TP1/"); // je crée une variable repertoire qui prend en param le dossier
+                File repertoire = new File("CAR-TP1/"); // je crée une var repertoire qui prend en param le dossier
                                                         // CAR-TP1
                 File[] files = repertoire.listFiles(); // je cree un tableau qui va contenir des fichiers ou des
                                                        // repertoires
@@ -164,7 +168,17 @@ public class Server {
             }
         }
 
+        private void cwd(OutputStream out, String fichierEnvoye) throws IOException {
 
+            File newDirectory = new File(fichierEnvoye + File.separator); // cd monDossier/
+
+            if (newDirectory.exists() && newDirectory.isDirectory()) {
+
+                out.write("250 Directory changed successfully\r\n".getBytes());
+            } else {
+                out.write("550 Directory not found\r\n".getBytes());
+            }
+        }
     }
 }
 /* RESULTATS DES TESTS */
@@ -206,7 +220,7 @@ public class Server {
  * 
  */
 
-/*
+/*3) dir
  * 220 Service ready
  * Name (localhost:gabriella): Gabriella
  * 331 User name valid, enter password
@@ -220,4 +234,21 @@ public class Server {
  * 
  * 226 Directory send OK.
  * 
-
+ * 
+ * cd
+ * ftp localhost 2121
+ * Connected to localhost.
+ * 220 Service ready
+ * Name (localhost:gabriella): Gabriella
+ * 331 User name valid, enter password
+ * Password:
+ * 230 User logged in
+ * ftp> cd src
+ * 250 Directory changed successfully
+ * ftp> cd ..
+ * 250 Directory changed successfully
+ * ftp> quit
+ * 221 USER Gabriella well disconnected. Thank you
+ * 
+ * 
+ */
