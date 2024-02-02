@@ -1,17 +1,24 @@
-import java.io.*;
-import java.net.*;
-import java.nio.file.Paths;
-import java.util.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import java.util.Scanner;
 
 public class Server {
 
     public static void main(String[] args) {
         try {
-
+            //je crée un ServerSocket pour ecouter sur le port 2121
             ServerSocket serv = new ServerSocket(2121);
 
             while (true) {
-                Socket s2 = serv.accept(); // le serveur accepte la connexion
+                Socket s2 = serv.accept(); // Le serveur tourne en boucle en acceptant les connexions entrantes.
                 ClientFTP clientFTP = new ClientFTP(s2);
                 clientFTP.start();
             }
@@ -30,7 +37,8 @@ public class Server {
                     InputStream in = s2.getInputStream();
                     OutputStream out = s2.getOutputStream();
                     Scanner scan = new Scanner(in);) {
-
+                        
+                //gestion de l'authentif
                 // Envoyer le message de bienvenue
                 String welcomeMessage = "220 Service ready\r\n";
                 out.write(welcomeMessage.getBytes());
@@ -43,7 +51,10 @@ public class Server {
                 String passwordInput = scan.nextLine();
                 System.out.println(passwordInput);
 
-                // userAuth verifie si on a bien les bons identifiant et mdp
+                /*  userAuth verifie si on a bien les bons identifiants
+                 * Actuellement, elle valide un utilisateur spécifique 
+                 * avec un nom d'utilisateur et un mot de passe codés en dur.
+                 */
                 if (userAuth(userNameInput, passwordInput)) {
                     out.write("230 User logged in\r\n".getBytes());
                 } else {
@@ -94,14 +105,19 @@ public class Server {
             }
         }
 
+        // userAuth verifie si on a bien les bons identifiant et mdp
         private static boolean userAuth(String username, String password) {
             return username.equals("USER Gabriella") && password.equals("PASS Miage");
         }
 
         private void epsv(OutputStream out) {
-            // epsv nous crée un serverSocket sur le port 2222
+            // epsv ouvre un serverSocket sur le port 2222
             try {
-
+                if (fichierServerSocket != null && !fichierServerSocket.isClosed()) {
+                    fichierServerSocket.close();
+                    }
+                   
+                   
                 fichierServerSocket = new ServerSocket(2222);
                 // j'envoie le msg au clt
                 out.write(("229 Entering Extended Passive Mode (|||" + 2222 + "|||)\r\n").getBytes());
@@ -110,8 +126,9 @@ public class Server {
             }
         }
 
+        /* retr permet de télécharger un fichier */
         private void retr(OutputStream out, String fichierEnvoye) throws IOException {
-            File file = new File(fichierEnvoye);
+            File file = new File("filesFTP/"+fichierEnvoye);
 
             if (!file.exists()) {
                 out.write("550 File not found\r\n".getBytes());
@@ -139,6 +156,7 @@ public class Server {
             }
         }
 
+        /*List : pour lister les fichiers dans le répertoire actuel du serveur */
         private void list(OutputStream out) throws IOException {
 
             try (Socket dataSocket = fichierServerSocket.accept(); // je crée une nouvelle connexion sur le nouveau port
@@ -146,8 +164,9 @@ public class Server {
 
                     OutputStream dataOut = dataSocket.getOutputStream()) {
 
-                File repertoire = new File("CAR-TP1/"); // je crée une var repertoire qui prend en param le dossier
+                File repertoire = new File("filesFTP/"); // je crée une var repertoire qui prend en param le dossier
                                                         // CAR-TP1
+                                                        // dir on lui dit de lister ts les fichiers qui sont dans file ftp/
                 File[] files = repertoire.listFiles(); // je cree un tableau qui va contenir des fichiers ou des
                                                        // repertoires
 
@@ -168,6 +187,8 @@ public class Server {
             }
         }
 
+
+        /*CWD : Change le répertoire courant du serveur*/
         private void cwd(OutputStream out, String fichierEnvoye) throws IOException {
 
             File newDirectory = new File(fichierEnvoye + File.separator); // cd monDossier/
@@ -183,7 +204,7 @@ public class Server {
 }
 /* RESULTATS DES TESTS */
 /*
- * 1)Authentification:
+ * 1Authentification:
  * 
  * gabriella@LAPTOP-N38P3PMG:~/CAR-TP1$ ftp localhost 2121
  * Connected to localhost.
@@ -197,7 +218,7 @@ public class Server {
  */
 
 /*
- * 2) get
+ * 2 get
  * 
  * 
  * gabriella@LAPTOP-N38P3PMG:~/CAR-TP1$ ftp localhost 2121
