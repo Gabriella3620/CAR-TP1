@@ -20,7 +20,7 @@ Sur ce dépot, vous trouverez le code du serveur Server.java .
 ```
 
 
-  2) commande get
+  2) **commande get**
   
   ```
   gabriella@LAPTOP-N38P3PMG:~/CAR-TP1$ ftp localhost 2121
@@ -41,7 +41,25 @@ Sur ce dépot, vous trouverez le code du serveur Server.java .
   2048 bytes received in 00:00 (41.16 KiB/s)
   ftp>
   ```
- 
+
+
+
+3) **commande dir**
+   La commande affiche ce qui se trouve dans le répertoire: on src qui est un dossier et README.md qui est un fichier.
+   
+```  
+220 Service ready
+Name (localhost:gabriella): Gabriella
+331 User name valid, enter password
+Password:
+230 User logged in
+ftp> dir
+229 Entering Extended Passive Mode (|||2222|||)
+150 Directory listing
+src
+README.md
+226 Directory send OK.
+``` 
 
 
  
