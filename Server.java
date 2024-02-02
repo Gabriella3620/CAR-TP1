@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Server {
@@ -10,7 +11,7 @@ public class Server {
             ServerSocket serv = new ServerSocket(2121);
 
             while (true) {
-                Socket s2 = serv.accept();
+                Socket s2 = serv.accept(); // le serveur accepte la connexion
                 ClientFTP clientFTP = new ClientFTP(s2);
                 clientFTP.start();
             }
@@ -42,6 +43,7 @@ public class Server {
                 String passwordInput = scan.nextLine();
                 System.out.println(passwordInput);
 
+                //userAuth verifie si on a bien les bons identifiant et mdp 
                 if (userAuth(userNameInput, passwordInput)) {
                     out.write("230 User logged in\r\n".getBytes());
                 } else {
@@ -55,13 +57,22 @@ public class Server {
 
                     System.out.println(commandeClt);
 
-                    switch (commandeClt) {
+                    /* Contraiment à par exemple quit, get prend un argument. 
+                    Pour RETR, il me faut donc séparer la commande de l'argument */
+                    String[] separetedCommand = commandeClt.split("\\s+", 2); 
+                    String command = separetedCommand[0].toUpperCase();
+                    String fichierEnvoye = separetedCommand.length > 1 ? separetedCommand[1] : "";
+
+                    switch (command) {
                         case "QUIT":
-                            out.write(("221 " + userNameInput + " Disconnected.\r\n").getBytes());
+                            out.write(("221 " + userNameInput + " Well disconnected. Thank you.\r\n").getBytes());
                             break;
-                        /* pour tout type de fichiers, PASV pour les fichiers txt */
+                        /* EPSV pour tout type de fichiers, PASV pour les fichiers txt */
                         case "EPSV":
                             epsv(out);
+                            break;
+                        case "RETR":
+                            retr(out, fichierEnvoye);
                             break;
 
                         default:
@@ -80,26 +91,86 @@ public class Server {
         }
 
         private void epsv(OutputStream out) {
+            // epsv nous crée un serverSocket sur le port 2222
             try {
 
-                fichierServerSocket = new ServerSocket(2040);
-
+                fichierServerSocket = new ServerSocket(2222);
+                // j'envoie le msg au clt
+                out.write(("229 Entering Extended Passive Mode (|||" + 2222 + "|||)\r\n").getBytes());
             } catch (Exception e) {
                 System.err.println("Error : " + e);
             }
         }
 
+        private void retr(OutputStream out, String fichierEnvoye) throws IOException {
+            File file = new File(fichierEnvoye);
+
+            if (!file.exists()) {
+                out.write("550 File not found\r\n".getBytes());
+                return;
+            }
+
+            try (Socket dataSocket = fichierServerSocket.accept();
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    OutputStream dataOut = dataSocket.getOutputStream()) {
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                out.write(("150 Opening data connection for " + fichierEnvoye + "\r\n").getBytes());
+
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    dataOut.write(buffer, 0, bytesRead);
+                }
+
+                out.write("226 Transfer complete.\r\n".getBytes());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+        }
+
+
+
     }
-
 }
-
+/* RESULTATS */
 /*
- * 1) Connected to localhost.
+ * 1)Authentification:
+ * 
+ * gabriella@LAPTOP-N38P3PMG:~/CAR-TP1$ ftp localhost 2121
+ * Connected to localhost.
  * 220 Service ready
  * Name (localhost:gabriella): Gabriella
  * 331 User name valid, enter password
  * Password:
  * 230 User logged in
  * ftp> quit
- * 221 USER Gabriella Disconnected.
+ * 221 USER Gabriella Well disconnected. Thank you.
  */
+
+/*
+ * 2) get
+ * 
+ * 
+ * gabriella@LAPTOP-N38P3PMG:~/CAR-TP1$ ftp localhost 2121
+ * Connected to localhost.
+ * 220 Service ready
+ * Name (localhost:gabriella): Gabriella
+ * 331 User name valid, enter password
+ * Password:
+ * 230 User logged in
+ * ftp> get bin
+ * local: bin remote: bin
+ * 229 Entering Extended Passive Mode (|||2222|||)
+ * 150 Opening data connection for bin
+ * 2048 7.78 MiB/s
+ * 226 Transfer complete.
+ * WARNING! 9 bare linefeeds received in ASCII mode.
+ * File may not have transferred correctly.
+ * 2048 bytes received in 00:00 (41.16 KiB/s)
+ * ftp>
+ * 
+ */
+
